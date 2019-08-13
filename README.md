@@ -1,5 +1,5 @@
 # MIND2019_IM_RL_SR
-Tutorials for MIND2019. Content includes
+Tutorials for MIND2019 on cognitive maps. Content includes:
 
 1- Notebook applying Q-learning vs. random exploration to the taxi problem from open AI GYM.
 
