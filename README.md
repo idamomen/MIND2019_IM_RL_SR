@@ -1,2 +1,2 @@
-# MIND2019_IM_RL_SR
+# MIND2019_IM
 Tutorials for MIND2019
