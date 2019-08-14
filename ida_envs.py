@@ -1,12 +1,22 @@
+import numpy as np
+
+
 ##################################
 #    NAT HUM BEH:: EXP 1
 ##################################
 def get_T(envstep):
     NUM_STATES = len(envstep)
     T=np.zeros([NUM_STATES, NUM_STATES])
-    for i in range(NUM_STATES):
-        T[i][envstep[i][0]]=1
+    T[0,2]=1
+    T[2,4]=1
+    T[1,3]=1
+    T[3,5]=1
     return T
+#####################
+def getSRT(T,gamma):
+    I = np.identity(len(T))
+    SRT = np.linalg.inv(I - gamma * T )
+    return SRT
 #####################
 def generate_nathumbeh_env1():
     NUM_STATES = 6
