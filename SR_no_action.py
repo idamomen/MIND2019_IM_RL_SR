@@ -21,8 +21,12 @@ class SR_no_action():
 	def __init__(self, gamma, alpha, p_sample, NUM_STATES):
 		self.gamma = gamma # discount factor
 		self.alpha = alpha # learning rate
-		self.p_sample = p_sample # p(sampling options)		
-		self.M= np.zeros([NUM_STATES, NUM_STATES]) # M: state-state SR    	
+		self.p_sample = p_sample # p(sampling options)	
+
+		# Initalize M with I instead of zeors
+		#self.M= np.zeros([NUM_STATES, NUM_STATES]) # M: state-state SR    	
+		self.M= np.eye(NUM_STATES) # M: state-state SR    	
+
 		self.W= np.zeros([NUM_STATES]) # W: value weights, 1D
 		self.onehot=np.eye(NUM_STATES) # onehot matrix, for updating M
 		
@@ -50,9 +54,21 @@ class SR_no_action():
         #Pi[s] = action
         # M, W = dyna_replay(memory, M, W, episodes)
 
+    def onehot_row(self, successor_s):	
+		row = np.zeros( len(self.W)) 
+		row[successor_s] = 1
+		return row
 
 	def update_SR(self, s, s_new):
-		self.M[s] = (1-self.alpha)* self.M[s] + self.alpha * ( self.onehot[s] + self.gamma * self.M[s_new]  )
+
+		onehot_row = self.onehot_row(s_new )
+		SR_TD_error = onehot_row + self.gamma * self.M[s_new] -self.M[s]  
+
+
+		# learning by element, as opposed to by row
+		self.M[s, s_new]   =  self.M[s,s_new] + .2*SR_TD_error[s_new]
+
+		#self.M[s] = (1-self.alpha)* self.M[s] + self.alpha * ( self.onehot[s] + self.gamma * self.M[s_new]  )
 		
 
 	def update_W(self, s, s_new, reward):
