@@ -25,10 +25,14 @@ class SR_Dyna_no_action():
 		self.replay_alpha = alpha # can be different in future
 
 		self.p_sample = p_sample # p(sampling options)		
-		self.M= np.zeros([NUM_STATES, NUM_STATES]) # M: state-state SR    	
+
+		# Initialize the successor representation, M with I
+		self.M= np.eye(NUM_STATES) # M: state-state SR    	
+		#self.M= np.zeros([NUM_STATES, NUM_STATES]) # M: state-state SR    	
+
 		self.W= np.zeros([NUM_STATES]) # W: value weights, 1D
 		self.onehot=np.eye(NUM_STATES) # onehot matrix, for updating M
-		
+		self.n = NUM_STATES
 		
 		self.V= np.zeros([NUM_STATES]) # value function
 		self.biggest_change = 0
@@ -38,6 +42,11 @@ class SR_Dyna_no_action():
     	# self.Pi = np.zeros([NUM_STATES], dtype=int)  
 		self.epsilon = .1
 		self.memory=[]
+
+	def onehot_row(self, successor_s):	
+		row = np.zeros( len(self.W)) 
+		row[successor_s] = 1
+		return row
 
 	def step(self, s, s_new, reward):
 
@@ -55,7 +64,21 @@ class SR_Dyna_no_action():
 
 
 	def update_SR(self, s, s_new):
-		self.M[s] = (1-self.alpha)* self.M[s] + self.alpha * ( self.onehot[s] + self.gamma * self.M[s_new]  )
+
+		# onehot here with s_new vs. with s
+		onehot_row = self.onehot_row(s_new )
+		SR_TD_error = onehot_row + self.gamma * self.M[s_new] -self.M[s]  
+		#print(f's {s} to {s_new}: {SR_TD_error}')
+
+
+		# learning by element, as opposed to by row
+		self.M[s, s_new]   =  self.M[s,s_new] + .2*SR_TD_error[s_new]
+
+		# Lines below are 2 row-update approaches 
+		#self.M[s]   =  self.M[s] + self.alpha * SR_TD_error
+		#self.M[s] = (1-self.alpha)* self.M[s] + self.alpha * ( self.onehot[s] + self.gamma * self.M[s_new]  )		
+		#self.M[s] = (1-self.alpha)* self.M[s] + self.alpha * ( self.onehot[s_new] + self.gamma * self.M[s_new]  )
+
 		
 
 	def update_W(self, s, s_new, reward):
@@ -104,7 +127,10 @@ class SR_Dyna_no_action():
 		# default: 1000, 50. change when caled
 		
 		# let's confine the memory to replay_steps steps
-		# for recency. XX CAN CHANGE IN FUTURE, not like ploscomp XX
+		# for recency. 
+		# XX CAN CHANGE IN FUTURE, not like ploscomp XX
+		#print(replay_steps)
+
 		if len(self.memory)<replay_steps:
 			mem=self.memory
 		else:
